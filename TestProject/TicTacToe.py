@@ -1,4 +1,5 @@
 import pygame
+import easygui
 import sys
 
 # Initialize pygame
@@ -59,36 +60,46 @@ def check_winner(player):
 
     return False
 
+# Function to display the game result and get user's choice
+def show_game_result(message):
+    choice = easygui.ynbox("Game Over! " + message + ". Do you want to play again?", "Game Over", ["Yes", "No"])
+    return choice
+
 # Main game loop
-def game_loop(current_player):
+def game_loop():
+    current_player = 'X'
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.mouse.get_pressed()[0]:
-                    x, y = pygame.mouse.get_pos()
-                    col = x // CELL_SIZE
-                    row = y // CELL_SIZE
-                    if board[row][col] == ' ':
-                        board[row][col] = current_player
-                        if check_winner(current_player):
-                            print("Player", current_player, "wins!")
-                            pygame.time.wait(2000)
-                            pygame.quit()
-                            sys.exit()
-                        elif all(board[i][j] != ' ' for i in range(BOARD_SIZE) for j in range(BOARD_SIZE)):
-                            print("It's a draw!")
-                            pygame.time.wait(2000)
-                            pygame.quit()
-                            sys.exit()
-                        current_player = 'O' if current_player == 'X' else 'X'
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                row = mouse_y // CELL_SIZE
+                col = mouse_x // CELL_SIZE
 
-        window.fill(BG_COLOR)
-        draw_lines()
-        draw_symbols()
+                if board[row][col] == ' ':
+                    board[row][col] = current_player
+                    draw_symbols()
+                    pygame.display.flip()
+
+                    if check_winner(current_player):
+                        pygame.time.wait(2000)
+                        if show_game_result(current_player + " Wins!"):
+                            board[:] = [[' ' for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+                            window.fill(BG_COLOR)
+                            draw_lines()
+                            pygame.display.flip()
+                        else:
+                            pygame.quit()
+                            sys.exit()
+
+                    current_player = 'O' if current_player == 'X' else 'X'
         pygame.display.update()
 
-# Start the game
-game_loop('X')  # Pass the initial current_player value as a parameter
+# Run the game
+window.fill(BG_COLOR)
+draw_lines()
+pygame.display.flip()
+game_loop()
